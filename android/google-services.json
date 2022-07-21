@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "178171650332",
+    "project_id": "crypto-insder",
+    "storage_bucket": "crypto-insder.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:178171650332:android:e0520055c18d7d0c769ad9",
+        "android_client_info": {
+          "package_name": "com.crypto.insider"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "178171650332-mrjcnp6mdpdnlin56mcskolsemg4mfi4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdFhjKA1RaRe4yXIt75JOm7i8Ifq7pRo8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "178171650332-mrjcnp6mdpdnlin56mcskolsemg4mfi4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "178171650332-2p2bqld5klqkdekno40oakrhlb68otsn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.crypto.insider"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
