@@ -1,6 +1,7 @@
 export default color = {
     black: '#000000',
-    white:"#FFFFFF",
+    white: "#FFFFFF",
     text_gray: '#cccaca',
-    dark_gray: '#3B3A41'
+    dark_gray: '#3B3A41',
+    blue: '#5376f5'
 }

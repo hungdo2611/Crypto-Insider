@@ -10,7 +10,10 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.17.7",
+    "@notifee/react-native": "5.5.0",
+    "@react-native-community/async-storage": "^1.12.1",
+    "@react-native-community/push-notification-ios": "^1.10.0",
+    "@react-native-community/clipboard": "^1.5.1",
     "@react-native-firebase/app": "^15.1.1",
     "@react-native-firebase/messaging": "^15.1.1",
     "axios": "^0.27.2",
@@ -19,12 +22,18 @@
     "lottie-react-native": "^5.1.3",
     "react": "18.0.0",
     "react-native": "0.69.1",
+    "react-native-autocomplete-dropdown": "^2.0.7",
     "react-native-fast-image": "^8.5.11",
     "react-native-navigation": "^7.28.1",
+    "react-native-pager-view": "^5.4.25",
     "react-native-push-notification": "^8.1.1",
+    "react-native-splash-screen": "^3.3.0",
+    "react-native-root-toast": "3.4.0",
+    "react-native-vector-icons": "^9.2.0",
     "react-redux": "^8.0.2",
     "redux": "^4.2.0",
-    "redux-saga": "^1.1.3"
+    "redux-saga": "^1.1.3",
+    "rn-placeholder": "^3.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

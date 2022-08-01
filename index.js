@@ -6,8 +6,10 @@ import { Platform } from 'react-native';
 
 import { registerScreens } from './src/RegisterScreen'
 import { Navigation } from 'react-native-navigation';
-import { setRootToWellcome } from './src/NavigationController'
+import { setRootToHome, setRootToWellcome } from './src/NavigationController'
 import colors from './src/constants/colors';
+import notificationProcessor from './src/notification'
+import { getLocalData } from './src/models';
 registerScreens();
 
 if (Platform.OS === 'android') {
@@ -58,6 +60,13 @@ if (Platform.OS === 'android') {
 }
 
 Navigation.events().registerAppLaunchedListener(async () => {
-    console.log('abc')
-    setRootToWellcome();
+    let data = await getLocalData();
+    if (data) {
+        setRootToHome()
+    } else {
+        setRootToWellcome();
+    }
 });
+
+notificationProcessor.createNotificationListeners();
+notificationProcessor.createDefaultChannels();

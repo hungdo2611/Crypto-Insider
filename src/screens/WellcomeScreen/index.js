@@ -11,11 +11,11 @@ import {
 
 
 import { connect } from 'react-redux'
-import colors from '../constants/colors';
+import colors from '../../constants/colors';
 import {
     pushToSignInScreen,
     pushToRegisterScreen
-} from '../NavigationController'
+} from '../../NavigationController'
 import LottieView from 'lottie-react-native';
 
 
@@ -66,7 +66,7 @@ class WellcomeScreen extends React.Component {
                             resizeMode="cover"
                             autoPlay
                             loop={true}
-                            source={require('../res/spaceship.json')}
+                            source={require('../../res/spaceship.json')}
                         />
                     </View>
                     {/* <Image style={{ width: width - 40, height: 300, marginTop: 20 }} source={require('../res/banner.jpg')} /> */}
@@ -88,7 +88,7 @@ class WellcomeScreen extends React.Component {
                             style={{
                                 flex: 1,
                                 backgroundColor: colors.white,
-                                borderRadius: 15,
+                                borderRadius: 20,
                                 height: '100%',
                                 alignItems: "center",
                                 justifyContent: 'center'

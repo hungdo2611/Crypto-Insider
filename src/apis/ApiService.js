@@ -1,5 +1,8 @@
 import Axios from 'axios'
 import { InstanceData } from '../models'
+import _ from 'lodash'
+import { Alert } from 'react-native'
+
 const _makeRequest = createRequest => async args => {
     const _headers = args.headers ? args.headers : {}
     const body = args.body ? args.body : {}
@@ -20,6 +23,9 @@ const _makeRequest = createRequest => async args => {
         throw e
     }
 }
+const showAlertErr = _.debounce(txt => {
+    Alert.alert(txt)
+}, 1000)
 
 const _makeAuthRequest = createRequest => async args => {
     const requestHeaders = args.headers ? args.headers : {}
@@ -42,6 +48,11 @@ const _makeAuthRequest = createRequest => async args => {
         return await _makeRequest(createRequest)(args)
     } catch (e) {
         const { response } = e
+
+        if (response.status === 444) {
+            showAlertErr('Your account has been locked. Let contact admin to solve the problem');
+            return
+        }
         if (!response || !response.data) {
             throw e
         }
@@ -52,7 +63,7 @@ const _makeAuthRequest = createRequest => async args => {
 }
 
 export default (options = {}) => {
-    let BaseURL = 'http://192.168.1.15:3000/api'
+    let BaseURL = 'http://192.168.1.14:3000/api'
     // let BaseURL = 'https://vn-9trip.com/api'
 
     // if (options.BaseURL)
