@@ -41,19 +41,21 @@ class SearchTokenScreen extends React.Component {
 
             data: [],
             isloading: false,
-            recentSearch: InstanceData.recentSearch,
+            recentSearch: [],
             showRecent: InstanceData.recentSearch.length > 0 ? true : false,
             chain: props?.data?.chain
 
         };
     }
+    setDataRecentSearch = (chain) => {
+        let recentSearch = InstanceData.recentSearch.filter(vl => vl.chain == chain);
+        this.setState({ recentSearch: recentSearch });
+    }
     componentDidMount() {
+        const { chain } = this.state;
+        this.setDataRecentSearch(chain);
     }
-    componentWillUnmount() {
-        const { recentSearch } = this.state;
-        AsyncStorage.setItem(KEY_ASYNC_RECENT_SEARCH, JSON.stringify(recentSearch));
-        InstanceData.recentSearch = recentSearch;
-    }
+
     renderLine = () => {
         return <View style={{ height: 1, width: width, backgroundColor: colors.dark_gray, marginVertical: 15 }} />
     }
@@ -106,13 +108,16 @@ class SearchTokenScreen extends React.Component {
         const { recentSearch } = this.state;
         let index = recentSearch.findIndex(vl => vl?.address == data?.address)
         if (index < 0) {
-            this.setState({ recentSearch: [...recentSearch, data] })
+            this.setState({ recentSearch: [data, ...recentSearch] });
+            InstanceData.recentSearch = [data, ...recentSearch];
+            AsyncStorage.setItem(KEY_ASYNC_RECENT_SEARCH, JSON.stringify([data, ...recentSearch]));
+
         }
     }
     onPressItem = (data) => {
         const { componentId } = this.props;
         const { chain } = this.state;
-        this.saveRecentSearch(data);
+        this.saveRecentSearch({ ...data, chain: chain });
         pushToDetailTokenScreen(componentId, { ...data, chain: chain })
     }
     renderItem = ({ item }) => {
@@ -168,6 +173,8 @@ class SearchTokenScreen extends React.Component {
     onClearRecent = () => {
         this.setState({ recentSearch: [], showRecent: false });
         InstanceData.recentSearch = [];
+        AsyncStorage.setItem(KEY_ASYNC_RECENT_SEARCH, JSON.stringify([]));
+
     }
     renderRecentSearch = () => {
         const { showRecent } = this.state;
@@ -201,6 +208,8 @@ class SearchTokenScreen extends React.Component {
                     onPress={() => {
                         this.setState({ chain: 'bsc' });
                         data?.cbsetChain('bsc');
+                        this.setDataRecentSearch('bsc');
+
                     }}
                     activeOpacity={0.6}
                     style={{
@@ -225,6 +234,8 @@ class SearchTokenScreen extends React.Component {
                     onPress={() => {
                         this.setState({ chain: 'eth' });
                         data?.cbsetChain('eth');
+                        this.setDataRecentSearch('eth');
+
 
                     }}
                     activeOpacity={0.6}

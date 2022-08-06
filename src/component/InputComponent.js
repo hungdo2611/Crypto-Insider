@@ -38,12 +38,13 @@ export default class InputComponent extends React.Component {
 
             // check valid
             isvalid,
-            txterror
+            txterror,
+            containerStyle
 
         } = this.props;
         return (
             <View>
-                <View style={{
+                <View style={containerStyle ? containerStyle : {
                     flexDirection: "row",
                     alignItems: "center",
                     borderRadius: 10,

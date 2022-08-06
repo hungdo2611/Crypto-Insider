@@ -13,7 +13,8 @@ export let InstanceData = {
     token: '',
     last_componentId: '',
     recentSearch: [],
-    list_subcribe: []
+    list_subcribe: [],
+    user_info: null
 }
 
 export const updateLocalData = async (data) => {
