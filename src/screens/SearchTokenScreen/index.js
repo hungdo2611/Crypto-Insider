@@ -124,6 +124,15 @@ class SearchTokenScreen extends React.Component {
         if (!item) {
             return null;
         }
+        let list_subscribe = InstanceData.user_info?.lst_sub_address;
+        let isSub = -1;
+        if (list_subscribe) {
+            isSub = list_subscribe.findIndex(vl => {
+                return vl == item?.address
+            })
+        }
+        console.log('list_subscribe', InstanceData.user_info)
+
         return <View>
             <View style={{ flexDirection: 'row', alignItems: "center", marginHorizontal: 10 }}>
                 <TouchableOpacity
@@ -138,7 +147,7 @@ class SearchTokenScreen extends React.Component {
                     </View>
                 </TouchableOpacity>
                 <TouchableOpacity style={{ backgroundColor: colors.blue, borderRadius: 10 }}>
-                    <Text style={{ fontSize: 13, fontWeight: "600", paddingHorizontal: 10, paddingVertical: 8, color: colors.white }}>Subcribe</Text>
+                    <Text style={{ fontSize: 13, fontWeight: "600", paddingHorizontal: 10, paddingVertical: 8, color: colors.white }}>{isSub < 0 ? "Subscribe" : "Subscribed"}</Text>
                 </TouchableOpacity>
             </View>
             {this.renderLine()}

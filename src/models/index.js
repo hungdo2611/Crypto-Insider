@@ -4,6 +4,7 @@ import axios from 'axios';
 import { bsc_image, KEY_ASYNC_RECENT_SEARCH } from '../constants';
 import Clipboard from '@react-native-community/clipboard'
 import Toast from 'react-native-root-toast';
+import { getProfileAPI } from '../apis/AccountAPI';
 
 const constant_key = {
     USER_INFO: 'ASYNC_USER_INFO',
@@ -44,14 +45,18 @@ export const getLocalData = async () => {
     AsyncStorage.getItem(KEY_ASYNC_RECENT_SEARCH).then(dt => {
         if (dt && dt != "null") {
             console.log("data123", dt)
-
             InstanceData.recentSearch = JSON.parse(dt);
         }
     })
     let data = await AsyncStorage.getItem(constant_key.USER_INFO);
     if (data) {
-        InstanceData.user_info = JSON.parse(data);
         InstanceData.token = JSON.parse(data).token;
+        let profile_data = await getProfileAPI();
+        console.log("profile_data", profile_data);
+
+        if (profile_data && !profile_data?.err) {
+            InstanceData.user_info = profile_data?.data;
+        }
         // store.dispatch(actionsHome.action.updateUserInfo(JSON.parse(data)))
 
         // getPreData();

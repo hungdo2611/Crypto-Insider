@@ -35,6 +35,7 @@ const _makeAuthRequest = createRequest => async args => {
         Authorization: `Bearer ${InstanceData.token}`,
 
     }
+    console.log("headers", headers)
 
     args = {
         ...args,
@@ -63,7 +64,7 @@ const _makeAuthRequest = createRequest => async args => {
 }
 
 export default (options = {}) => {
-    let BaseURL = 'http://192.168.1.37:3000/api'
+    let BaseURL = 'http://192.168.1.9:3000/api'
     // let BaseURL = 'https://vn-9trip.com/api'
 
     // if (options.BaseURL)

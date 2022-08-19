@@ -18,7 +18,6 @@ import {
 
 
 import { connect } from 'react-redux'
-import TopBarComponent from '../../component/TopBar';
 import colors from '../../constants/colors';
 import FastImage from 'react-native-fast-image';
 import { renderShortAddress, copyToClipboard, InstanceData } from '../../models';
@@ -30,11 +29,10 @@ import { GetTokenInfo } from '../../apis/TokenInfo'
 import Modal from "react-native-modal";
 import DropDownPicker from 'react-native-dropdown-picker';
 import LottieView from 'lottie-react-native';
-import { SubcribeTokenAPI } from '../../apis/Subcribe';
+import { SubcribeTokenAPI, UpdateSubcribeTokenAPI, unSubscribeTokenAPI } from '../../apis/Subcribe';
 import InputComponent from '../../component/InputComponent'
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { CONSTANT_TYPE_ACCOUNT } from '../../constants';
-
+import BigNumber from 'bignumber.js'
 
 
 const { width, height } = Dimensions.get('window')
@@ -50,7 +48,8 @@ class DetailTokenScreen extends React.Component {
             is_sub: false,
             isloading: true,
             isValidTxValue: true,
-            txtErrorTxValue: ''
+            txtErrorTxValue: '',
+            subscribe_info: null
         };
     }
     async componentDidMount() {
@@ -67,8 +66,11 @@ class DetailTokenScreen extends React.Component {
         if (tokeninfo && tokeninfo?.data && !tokeninfo.err) {
 
             this.setState({ token_info: tokeninfo?.data });
+            if (tokeninfo?.sub_data) {
+                this.setState({ subscribe_info: tokeninfo?.sub_data })
+            }
         } else {
-            Alert.alert('Token is not verified')
+            Alert.alert('This token is not supported')
         }
 
 
@@ -143,22 +145,141 @@ class DetailTokenScreen extends React.Component {
         const { data } = this.props;
         const { token_info } = this.state;
         let price = token_info ? token_info?.price + ' $' : data?.price;
+        if (token_info) {
+            price = new BigNumber(token_info?.price).toFormat((token_info?.decimal >> 0) + 2, BigNumber.ROUND_DOWN) + '$';
+        } else {
+            price = data?.price;
+        }
+
         return <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }
         }>
             <Text style={{ color: colors.text_gray, fontSize: 16, fontWeight: '600' }}>Price: </Text>
             <Text style={{ color: colors.white, fontSize: 16, fontWeight: '600' }}>{price}</Text>
         </View>
     }
-    renderButton = () => {
-        const { isVisibleModal, token_info } = this.state;
-        let disable_btn = token_info ? false : true;
+    renderEdit = () => {
+        const { isVisibleModal } = this.state;
         return <TouchableOpacity
-            disabled={disable_btn}
             onPress={() => this.setState({ isVisibleModal: !isVisibleModal })}
-            activeOpacity={0.6}
-            style={{ backgroundColor: disable_btn ? colors.text_gray : colors.blue, borderRadius: 10, alignItems: 'center', justifyContent: "center", paddingVertical: 6, marginTop: 15 }}>
-            <Text style={{ fontSize: 18, fontWeight: "600", paddingHorizontal: 10, paddingVertical: 8, color: colors.white }}>{token_info?.is_sub ? "Subscribed" : "Subscribe"}</Text>
+            activeOpacity={0.6}>
+            <Image style={{ width: 24, height: 24 }} source={require('../../res/edit.png')} />
         </TouchableOpacity>
+    }
+    renderInfoSubscribe = () => {
+        const { token_info, subscribe_info } = this.state;
+        let time_expired = (subscribe_info?.time_expired / 1000);
+        let is_expired = time_expired > Date.now();
+        let sub_value = `${new Intl.NumberFormat("es-ES").format(subscribe_info?.min_value)} $`
+
+
+        if (token_info?.is_sub) {
+            if (is_expired) {
+                return <View style={{ marginVertical: 10, alignItems: "center" }}>
+                    <Image source={require('../../res/no_alarm.png')} />
+                    <Text style={{ color: colors.white, fontSize: 18, fontWeight: '600', textAlign: "center", paddingVertical: 5 }}>
+                        Alert transactions have value bigger than
+                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: 'center' }}>
+                        <Text style={{ color: colors.blue, fontSize: 18, fontWeight: 'bold', paddingRight: 5 }}>{sub_value}</Text>
+                        {this.renderEdit()}
+                    </View>
+                </View>
+            }
+            return <View style={{ marginVertical: 10, alignItems: "center" }}>
+                <Image source={require('../../res/bell.png')} />
+                <Text style={{ color: colors.white, fontSize: 18, fontWeight: '600', textAlign: "center", paddingVertical: 5 }}>
+                    Alert transactions have value bigger than
+                </Text>
+                <View style={{ flexDirection: "row", alignItems: 'center' }}>
+                    <Text style={{ color: colors.blue, fontSize: 18, fontWeight: 'bold', paddingRight: 5 }}> {sub_value}</Text>
+                    {this.renderEdit()}
+                </View>
+            </View>
+        } else {
+            return <View style={{ marginVertical: 10, alignItems: "center" }}>
+                <Image source={require('../../res/no_alarm.png')} />
+                <Text style={{ color: colors.white, fontSize: 18, fontWeight: '600', textAlign: "center", paddingHorizontal: 30, paddingVertical: 10 }}>
+                    Subscribe to get transactions have value bigger than your choice
+                </Text>
+            </View>
+        }
+    }
+    onPressButton = () => {
+
+    }
+    unSubToken = async () => {
+        const { subscribe_info, token_info } = this.state;
+        const { data } = this.props;
+
+        let req = await unSubscribeTokenAPI(subscribe_info?._id, data?.address);
+        if (req && !req.err) {
+            this.setState({ subscribe_info: null, token_info: { ...token_info, is_sub: false } });
+        }
+    }
+    showModalSubscribe = () => {
+        const { isVisibleModal, subscribe_info, token_info } = this.state;
+        const { data } = this.props;
+        const { name } = data;
+
+        if (token_info?.is_sub) {
+            let time_expired = (subscribe_info?.time_expired / 1000);
+            let is_expired = time_expired > Date.now();
+            if (is_expired) {
+                this.setState({ isVisibleModal: !isVisibleModal })
+            } else {
+                //show unsub
+                Alert.alert(
+                    `Unsubscribe from ${name}?`,
+                    "",
+                    [
+                        { text: 'Cancel', onPress: () => console.log('Cancel Pressed'), style: 'cancel' },
+                        {
+                            text: 'Unsubscribe', onPress: this.unSubToken
+                        },
+                    ]
+                )
+            }
+        } else {
+            this.setState({ isVisibleModal: !isVisibleModal })
+        }
+    }
+    renderSubscribe = () => {
+        const { isVisibleModal, token_info, isloading, subscribe_info } = this.state;
+        let disable_btn = token_info ? false : true;
+
+
+        if (isloading) {
+            return
+        }
+
+
+        let title_button;
+        if (token_info?.is_sub) {
+            let time_expired = (subscribe_info?.time_expired / 1000);
+            let is_expired = time_expired > Date.now();
+            if (is_expired) {
+                title_button = 'Subscribe expired';
+
+            } else {
+                title_button = 'Subscribed';
+
+            }
+        } else {
+            title_button = 'Subscribe now';
+        }
+
+        return <View>
+            {this.renderLine()}
+            <Text style={{ fontSize: 20, fontWeight: "bold", color: colors.text_gray }}>Subscribe Info</Text>
+            {this.renderInfoSubscribe()}
+            <TouchableOpacity
+                disabled={disable_btn}
+                onPress={this.showModalSubscribe}
+                activeOpacity={0.6}
+                style={{ backgroundColor: disable_btn ? colors.text_gray : colors.blue, borderRadius: 10, alignItems: 'center', justifyContent: "center", paddingVertical: 6, marginTop: 15 }}>
+                <Text style={{ fontSize: 18, fontWeight: "600", paddingHorizontal: 10, paddingVertical: 8, color: colors.white }}>{title_button}</Text>
+            </TouchableOpacity>
+        </View>
     }
     renderLine = () => {
         return <View style={{ height: 1, width: width, backgroundColor: colors.dark_gray, marginVertical: 15 }} />
@@ -171,42 +292,61 @@ class DetailTokenScreen extends React.Component {
     }
     onSubcribe = async () => {
         const { data } = this.props;
-        const { sub_value, custom_value } = this.state;
-
+        const { sub_value, custom_value, isVisibleModal, subscribe_info } = this.state;
+        let txValue = 0;
+        // check custom
         if (custom_value.show) {
-            let txValue = custom_value.value >> 0;
-            console.log('txt value', txValue)
+            txValue = custom_value.value >> 0;
 
-            if (txValue < 500 && InstanceData.user_info?.acc_type == CONSTANT_TYPE_ACCOUNT.FREE) {
+            if (txValue < 500 && InstanceData.user_info?.acc_type == CONSTANT_TYPE_ACCOUNT.PRO) {
                 this.setState({
                     isValidTxValue: false,
                     txtErrorTxValue: 'Transaction value must be greater than 500$'
                 })
                 return
             }
+        } else {
+            txValue = sub_value;
+        }
+        // check create new or update
+        if (subscribe_info) {
+            const body = {
+                id_sub: subscribe_info?._id,
+                min_value: txValue
+            }
+            let req_update = await UpdateSubcribeTokenAPI(body);
+            if (req_update && !req_update.err) {
+                this.setState({ subscribe_info: req_update?.data });
+            }
+            console.log("req_update", req_update)
+        } else {
             const body = {
                 address: data?.address,
-                min_value: sub_value,
+                min_value: txValue,
                 chain: data?.chain
             };
             let req_sub = await SubcribeTokenAPI(body);
-            this.setState({ isVisibleModal: !isVisibleModal })
-        } else {
-            return
+            if (req_sub && !req_sub.err) {
+                this.setState({ subscribe_info: req_sub?.data })
+            }
         }
+
+        this.setState({ isVisibleModal: !isVisibleModal })
 
 
     }
 
 
     renderModalSelectTransValue = () => {
+
+        let isPro = InstanceData.user_info?.acc_type == CONSTANT_TYPE_ACCOUNT.PRO;
         const list = [
             { label: new Intl.NumberFormat().format(2000) + ' $', value: '2000' },
             { label: new Intl.NumberFormat().format(5000) + ' $', value: '5000' },
             { label: new Intl.NumberFormat().format(10000) + ' $', value: '10000' },
             { label: new Intl.NumberFormat().format(20000) + ' $', value: '20000' },
             { label: new Intl.NumberFormat().format(50000) + ' $', value: '50000' },
-            { label: 'Custom', value: 'custom' },
+            { label: 'Custom (Pro Version)', value: 'custom', disabled: !isPro },
 
 
         ];
@@ -245,6 +385,8 @@ class DetailTokenScreen extends React.Component {
                             open={showPicker}
                             value={sub_value}
                             items={list}
+                            closeOnBackPressed
+                            disabledItemLabelStyle={{ color: colors.text_gray }}
                             placeholder='Select transaction value to listen'
                             setOpen={isOpen => this.setState({ showPicker: isOpen })}
                             onSelectItem={(item) => {
@@ -295,7 +437,7 @@ class DetailTokenScreen extends React.Component {
                             onPress={() => this.onSubcribe()}
                             activeOpacity={0.6}
                             style={{ backgroundColor: colors.blue, borderRadius: 10, alignItems: 'center', justifyContent: "center", paddingVertical: 6, marginTop: 20 }}>
-                            <Text style={{ fontSize: 18, fontWeight: "600", paddingHorizontal: 10, paddingVertical: 8, color: colors.white }}>Subcribe</Text>
+                            <Text style={{ fontSize: 18, fontWeight: "600", paddingHorizontal: 10, paddingVertical: 8, color: colors.white }}>Subscribe</Text>
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
@@ -326,7 +468,7 @@ class DetailTokenScreen extends React.Component {
                     {this.renderWebSite()}
                     {this.renderPrice()}
                     {this.renderLoading()}
-                    {this.renderButton()}
+                    {this.renderSubscribe()}
                     {this.renderLine()}
                     {this.renderListBigTrans()}
                     {this.renderModalSelectTransValue()}

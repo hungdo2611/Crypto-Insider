@@ -28,4 +28,9 @@ export const registerDeviceTokenAPI = (body) => {
     })
 }
 
-
+export const getProfileAPI = () => {
+    return api.makeAuthRequest({
+        url: `/account/info`,
+        method: 'GET',
+    })
+}
