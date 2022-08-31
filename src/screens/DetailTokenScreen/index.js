@@ -72,15 +72,15 @@ class DetailTokenScreen extends React.Component {
             let tokeninfo = await GetTokenInfo(body);
             console.log('tokeninfo', tokeninfo)
             this.setState({ isloading: false })
-
-            if (tokeninfo && tokeninfo?.data && !tokeninfo.err) {
+            //price ==0  not tradable
+            if (tokeninfo && tokeninfo?.data && !tokeninfo.err && tokeninfo?.data?.price !== 0) {
 
                 this.setState({ token_info: tokeninfo?.data });
                 if (tokeninfo?.sub_data) {
                     this.setState({ subscribe_info: tokeninfo?.sub_data, sub_value: tokeninfo?.sub_data?.min_value + '' })
                 }
             } else {
-                Alert.alert('This token is not supported')
+                Alert.alert('This token is not tradable')
             }
         }
 
@@ -158,7 +158,7 @@ class DetailTokenScreen extends React.Component {
         const { token_info } = this.state;
         let price = token_info ? token_info?.price + ' $' : data?.price;
         if (token_info) {
-            price = new BigNumber(token_info?.price).toFormat((token_info?.decimal >> 0) + 2, BigNumber.ROUND_DOWN) + '$';
+            price = new BigNumber(token_info?.price).toFixed(10) + ' $';
         } else {
             price = data?.price;
         }

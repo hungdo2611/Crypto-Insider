@@ -223,7 +223,7 @@ class WatchListScreen extends React.Component {
     }
     renderItem = ({ item }) => {
         const address = renderShortAddress(item?.token_id?.contract_add, 10);
-        let price = new BigNumber(item?.token_id?.price_usd).toFormat(5, BigNumber.ROUND_DOWN) + '$';
+        let price = new BigNumber(item?.token_id?.price_usd).toFormat(5, BigNumber.ROUND_DOWN) + ' $';
         let sub_value = `${new Intl.NumberFormat("es-ES").format(item?.min_value)} $`;
         let time_expired = moment(item?.time_expired).fromNow();
         const current_time = Date.now();
@@ -261,10 +261,7 @@ class WatchListScreen extends React.Component {
                 </View>
             </TouchableOpacity>
             <Text style={{ fontSize: 15, fontWeight: '500', color: colors.text_gray }}>{price}</Text>
-            {/* <TouchableOpacity style={{ backgroundColor: colors.blue, borderRadius: 10 }}> */}
-            {/* <Image style={{ tintColor: colors.white, width: 30, height: 30 }} source={require('../../res/right-arrow.png')} /> */}
-            {/* <Text style={{ fontSize: 13, fontWeight: "600", paddingHorizontal: 10, paddingVertical: 8, color: colors.white }}>{"Subscribe"}</Text> */}
-            {/* </TouchableOpacity> */}
+            
         </View>
 
     }
