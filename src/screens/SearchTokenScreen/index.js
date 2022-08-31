@@ -131,27 +131,44 @@ class SearchTokenScreen extends React.Component {
                 return vl == item?.address
             })
         }
-        console.log('list_subscribe', InstanceData.user_info)
+        const shadow_style = {
+            shadowColor: colors.blue,
+            shadowOffset: {
+                width: 0,
+                height: 6,
+            },
+            shadowOpacity: 0.37,
+            shadowRadius: 7.49,
 
-        return <View>
-            <View style={{ flexDirection: 'row', alignItems: "center", marginHorizontal: 10 }}>
-                <TouchableOpacity
-                    onPress={() => this.onPressItem(item)}
-                    activeOpacity={0.6}
-                    style={{ flexDirection: 'row', alignItems: "center", flex: 1 }}>
-                    <FastImage style={{ width: 40, height: 40, borderRadius: 20 }} resizeMode='cover' source={{ uri: item?.image }} />
-                    <View style={{ marginLeft: 10 }}>
-                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.white }}>{item?.name}</Text>
-                        <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text_gray }}>{item?.soft_add} - {item?.price}</Text>
+            elevation: 12,
+            // background color must be set
+            backgroundColor: "black" // invisible color
+        }
 
-                    </View>
-                </TouchableOpacity>
-                <TouchableOpacity style={{ backgroundColor: colors.blue, borderRadius: 10 }}>
-                    <Text style={{ fontSize: 13, fontWeight: "600", paddingHorizontal: 10, paddingVertical: 8, color: colors.white }}>{isSub < 0 ? "Subscribe" : "Subscribed"}</Text>
-                </TouchableOpacity>
-            </View>
-            {this.renderLine()}
+        return <View style={[shadow_style, { flexDirection: 'row', alignItems: "center", marginVertical: 10, marginHorizontal: 5, borderRadius: 15, padding: 10 }]}>
+            <TouchableOpacity
+                onPress={() => this.onPressItem(item)}
+                activeOpacity={0.6}
+                style={{ flexDirection: 'row', alignItems: "center", flex: 1 }}>
+                <FastImage style={{ width: 40, height: 40, borderRadius: 20 }} resizeMode='cover' source={{ uri: item?.image }} />
+                <View style={{ marginLeft: 10 }}>
+                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.white, lineHeight: 30 }}>{item?.name}</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '500', color: colors.text_gray }}>{item?.soft_add} - {item?.price}</Text>
+
+                </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPress={() => this.onPressItem(item)}
+                activeOpacity={0.6}
+            >
+                {/* <Text style={{ fontSize: 14, fontWeight: "600", paddingHorizontal: 10, paddingVertical: 8, color: colors.white, textAlign: "center" }}>
+                        {isSub < 0 ? "Subscribe" : "Subscribed"}
+                    </Text> */}
+                <Image style={{ width: 32, height: 32 }} source={isSub < 0 ? require('../../res/no_alarm.png') : require('../../res/bell.png')} />
+            </TouchableOpacity>
         </View>
+        {/* {this.renderLine()} */ }
+
     }
     renderLoading = () => {
         let arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
@@ -200,31 +217,24 @@ class SearchTokenScreen extends React.Component {
     }
     renderChain = () => {
         const { chain } = this.state;
-        const { data } = this.props;
-        return <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
-            <Text style={{ fontWeight: "700", fontSize: 18, color: colors.text_gray }}>Chain:</Text>
+        return <View style={{ flexDirection: "row", alignItems: "center", marginTop: 20 }}>
+            {/* <Text style={{ fontWeight: "700", fontSize: 18, color: colors.text_gray }}>Chain:</Text> */}
             <View
                 style={{
                     flexDirection: "row",
                     alignItems: 'center',
-                    borderRadius: 10,
-                    marginHorizontal: 20,
+                    borderRadius: 20,
                     backgroundColor: colors.dark_gray,
-                    height: 32,
+                    height: 42,
                     width: 170,
                 }}>
                 <TouchableOpacity
-                    onPress={() => {
-                        this.setState({ chain: 'bsc' });
-                        data?.cbsetChain('bsc');
-                        this.setDataRecentSearch('bsc');
-
-                    }}
+                    onPress={() => this.setState({ chain: 'bsc' })}
                     activeOpacity={0.6}
                     style={{
                         flex: 1,
-                        backgroundColor: chain == 'bsc' ? colors.white : colors.dark_gray,
-                        borderRadius: 10,
+                        backgroundColor: chain == 'bsc' ? colors.blue : colors.dark_gray,
+                        borderRadius: 20,
                         height: '100%',
                         alignItems: "center",
                         justifyContent: 'center',
@@ -233,20 +243,14 @@ class SearchTokenScreen extends React.Component {
                     <Image style={{ width: 20, height: 20 }} source={require('../../res/bsc.png')} />
                     <Text
                         style={{
-                            fontSize: 15,
+                            fontSize: 18,
                             fontWeight: "bold",
-                            color: chain == 'bsc' ? colors.black : colors.white,
+                            color: colors.white,
                             marginLeft: 5
-                        }}>BSC</Text>
+                        }}>Bsc</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    onPress={() => {
-                        this.setState({ chain: 'eth' });
-                        data?.cbsetChain('eth');
-                        this.setDataRecentSearch('eth');
-
-
-                    }}
+                    onPress={() => this.setState({ chain: 'eth' })}
                     activeOpacity={0.6}
                     style={{
                         flex: 1,
@@ -254,8 +258,8 @@ class SearchTokenScreen extends React.Component {
                         alignItems: "center",
                         justifyContent: 'center',
                         flexDirection: "row",
-                        backgroundColor: chain == 'eth' ? colors.white : colors.dark_gray,
-                        borderRadius: 10,
+                        backgroundColor: chain == 'eth' ? colors.blue : colors.dark_gray,
+                        borderRadius: 20,
 
 
 
@@ -263,12 +267,12 @@ class SearchTokenScreen extends React.Component {
                     <Image style={{ width: 20, height: 20 }} source={require('../../res/eth.png')} />
                     <Text
                         style={{
-                            fontSize: 15,
+                            fontSize: 18,
                             fontWeight: "bold",
-                            color: chain == 'eth' ? colors.black : colors.white,
+                            color: colors.white,
                             marginLeft: 5
                         }}>
-                        ETH
+                        Eth
                     </Text>
                 </TouchableOpacity>
             </View>

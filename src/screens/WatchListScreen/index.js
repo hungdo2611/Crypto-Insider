@@ -27,8 +27,14 @@ import {
     Shine
 } from "rn-placeholder";
 
-import { AutocompleteDropdown } from 'react-native-autocomplete-dropdown';
+import { getListSubscribeUser } from '../../apis/Subcribe';
+import { renderShortAddress } from '../../models';
+import FastImage from 'react-native-fast-image';
+import BigNumber from 'bignumber.js'
+import { pushToDetailTokenScreen } from '../../NavigationController'
+import moment from 'moment';
 
+export let WatchListInstance = null;
 
 const { width, height } = Dimensions.get('window')
 class WatchListScreen extends React.Component {
@@ -39,20 +45,50 @@ class WatchListScreen extends React.Component {
             chain: 'bsc',
             refreshing: false,
             isloading: false,
-            dataBSC: [],
-            dataETH: [],
+            lst_sub: [],
+            total_sub: 0,
 
         };
+        this.page_number = 1;
+        this.page_size = 10;
+        WatchListInstance = this;
     }
 
     componentDidMount() {
         this.getData();
     }
+    addNewData = (data) => {
+        console.log("addNewData", data);
+        const { lst_sub } = this.state;
+        this.setState({ lst_sub: [data, ...lst_sub] })
+    }
+    updateExsistData = (data) => {
+        const { lst_sub } = this.state;
+        let new_arr = lst_sub.map(vl => {
+            if (vl?._id == data?._id) {
+                return { ...vl, min_value: data?.min_value }
+            } else {
+                return vl
+            }
+        });
+        this.setState({ lst_sub: new_arr })
+    }
 
-    getData = () => {
-        const { } = this.state;
-        console.log("getdata")
-        this.setState({ isloading: true })
+    getData = async () => {
+        const { total_sub, lst_sub } = this.state;
+        if (total_sub > 0 && total_sub >= lst_sub.length) {
+            return
+        }
+
+        this.setState({ isloading: true });
+        const req = await getListSubscribeUser(this.page_number, this.page_size);
+        console.log("req", req);
+
+        this.setState({ isloading: false });
+        if (req && !req.err) {
+            this.setState({ lst_sub: [...lst_sub, ...req?.data], total_sub: req?.total });
+            this.page_number = this.page_number + 1;
+        }
 
     }
 
@@ -88,16 +124,15 @@ class WatchListScreen extends React.Component {
     }
     renderChain = () => {
         const { chain } = this.state;
-        return <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
-            <Text style={{ fontWeight: "700", fontSize: 18, color: colors.text_gray }}>Chain:</Text>
+        return <View style={{ flexDirection: "row", alignItems: "center", marginVertical: 20 }}>
+            {/* <Text style={{ fontWeight: "700", fontSize: 18, color: colors.text_gray }}>Chain:</Text> */}
             <View
                 style={{
                     flexDirection: "row",
                     alignItems: 'center',
-                    borderRadius: 10,
-                    marginHorizontal: 20,
+                    borderRadius: 20,
                     backgroundColor: colors.dark_gray,
-                    height: 32,
+                    height: 42,
                     width: 170,
                 }}>
                 <TouchableOpacity
@@ -105,8 +140,8 @@ class WatchListScreen extends React.Component {
                     activeOpacity={0.6}
                     style={{
                         flex: 1,
-                        backgroundColor: chain == 'bsc' ? colors.white : colors.dark_gray,
-                        borderRadius: 10,
+                        backgroundColor: chain == 'bsc' ? colors.blue : colors.dark_gray,
+                        borderRadius: 20,
                         height: '100%',
                         alignItems: "center",
                         justifyContent: 'center',
@@ -115,11 +150,11 @@ class WatchListScreen extends React.Component {
                     <Image style={{ width: 20, height: 20 }} source={require('../../res/bsc.png')} />
                     <Text
                         style={{
-                            fontSize: 15,
+                            fontSize: 18,
                             fontWeight: "bold",
-                            color: chain == 'bsc' ? colors.black : colors.white,
+                            color: colors.white,
                             marginLeft: 5
-                        }}>BSC</Text>
+                        }}>Bsc</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     onPress={() => this.setState({ chain: 'eth' })}
@@ -130,8 +165,8 @@ class WatchListScreen extends React.Component {
                         alignItems: "center",
                         justifyContent: 'center',
                         flexDirection: "row",
-                        backgroundColor: chain == 'eth' ? colors.white : colors.dark_gray,
-                        borderRadius: 10,
+                        backgroundColor: chain == 'eth' ? colors.blue : colors.dark_gray,
+                        borderRadius: 20,
 
 
 
@@ -139,12 +174,12 @@ class WatchListScreen extends React.Component {
                     <Image style={{ width: 20, height: 20 }} source={require('../../res/eth.png')} />
                     <Text
                         style={{
-                            fontSize: 15,
+                            fontSize: 18,
                             fontWeight: "bold",
-                            color: chain == 'eth' ? colors.black : colors.white,
+                            color: colors.white,
                             marginLeft: 5
                         }}>
-                        ETH
+                        Eth
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -153,34 +188,93 @@ class WatchListScreen extends React.Component {
 
 
     getDataProvider = () => {
-        const { dataBSC, dataETH, chain } = this.state;
+        const { lst_sub, chain } = this.state;
         if (chain == 'bsc') {
-            return dataBSC;
+            let data = lst_sub.filter(vl => vl?.token_id?.chain == 'bsc');
+            return data;
         }
         if (chain == 'eth') {
-            return dataETH;
+            let data = lst_sub.filter(vl => vl?.token_id?.chain == 'eth');
+            return data;
         }
     }
-    renderItem = () => {
+    renderLine = () => {
+        return <View style={{ height: 1, width: width, backgroundColor: colors.dark_gray, marginVertical: 5 }} />
+    }
+    onPressItem = (data) => {
+        const { componentId } = this.props;
+        const { chain } = this.state;
+        const data_pass_props = {
+            name: data?.token_id?.name,
+            address: data?.token_id?.contract_add,
+            price: data?.token_id?.price_usd,
+            image: data?.token_id?.icon
+        }
+        pushToDetailTokenScreen(componentId, {
+            token_info: data_pass_props,
+            chain: chain,
+            haveData: true,
+            sub_data: data,
+            address: data?.token_id?.contract_add,
+            name: data?.token_id?.name,
+            image: data?.token_id?.icon,
+            website: data?.token_id?.website
+        })
+    }
+    renderItem = ({ item }) => {
+        const address = renderShortAddress(item?.token_id?.contract_add, 10);
+        let price = new BigNumber(item?.token_id?.price_usd).toFormat(5, BigNumber.ROUND_DOWN) + '$';
+        let sub_value = `${new Intl.NumberFormat("es-ES").format(item?.min_value)} $`;
+        let time_expired = moment(item?.time_expired).fromNow();
+        const current_time = Date.now();
+        const shadow_style = {
+            shadowColor: colors.blue,
+            shadowOffset: {
+                width: 0,
+                height: 6,
+            },
+            shadowOpacity: 0.37,
+            shadowRadius: 7.49,
+
+            elevation: 12,
+            // background color must be set
+            backgroundColor: "black" // invisible color
+        }
+        return <View style={[shadow_style, { flexDirection: 'row', alignItems: "center", marginVertical: 10, marginHorizontal: 5, borderRadius: 15, padding: 10 }]}>
+            <TouchableOpacity
+                onPress={() => this.onPressItem(item)}
+                activeOpacity={0.6}
+                style={[{ flexDirection: 'row', alignItems: "center", flex: 1 }]}>
+                <FastImage style={{ width: 46, height: 46, borderRadius: 23 }} resizeMode='cover' source={{ uri: item?.token_id?.icon }} />
+                <View style={{ marginLeft: 10 }}>
+                    <Text style={{ fontSize: 17, fontWeight: 'bold', color: colors.white, lineHeight: 20 }}>{item?.token_id?.name}</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text_gray, marginTop: 3 }}>{item?.token_id?.symbol}</Text>
+                    {/* {/* <Text style={{ fontSize: 15, fontWeight: '500', color: colors.text_gray }}>{price}</Text> */}
+                    <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text_gray }}>{`Subscription value`} {sub_value}</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text_gray }}>
+                        {item?.time_expired > current_time ? `Expired ${time_expired}` : 'Expired. Renew now!'}
+                    </Text>
+
+
+
+
+                </View>
+            </TouchableOpacity>
+            <Text style={{ fontSize: 15, fontWeight: '500', color: colors.text_gray }}>{price}</Text>
+            {/* <TouchableOpacity style={{ backgroundColor: colors.blue, borderRadius: 10 }}> */}
+            {/* <Image style={{ tintColor: colors.white, width: 30, height: 30 }} source={require('../../res/right-arrow.png')} /> */}
+            {/* <Text style={{ fontSize: 13, fontWeight: "600", paddingHorizontal: 10, paddingVertical: 8, color: colors.white }}>{"Subscribe"}</Text> */}
+            {/* </TouchableOpacity> */}
+        </View>
 
     }
     renderRefreshCtr = () => {
         return <RefreshControl
             refreshing={this.state.refreshing}
             onRefresh={() => {
-                this.setState({
-                    refreshing: true,
-                });
-                this.refreshData();
-                setTimeout(
-                    function () {
-                        //console.oldlog("")
-                        this.setState({
-                            refreshing: false,
-                        });
-                    }.bind(this),
-                    2000,
-                );
+                this.page_number = 0;
+                this.getData();
+
                 // this.onRefresh()
             }}
         />
@@ -222,11 +316,11 @@ class WatchListScreen extends React.Component {
                     hidden={false} />
                 <SafeAreaView style={{ flex: 1 }}>
                     <TopBarComponent title="Watch List" />
-                    {this.renderChain()}
                     {this.renderSearchInput()}
+                    {this.renderChain()}
                     {isloading && this.renderLoading()}
                     {!isloading && <FlatList
-                        data={[...data, { type: 'loading' }]}
+                        data={[...data]}
                         keyExtractor={(item, index) => item?._id}
                         renderItem={this.renderItem}
                         onEndReachedThreshold={100}

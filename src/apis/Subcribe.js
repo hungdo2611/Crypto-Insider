@@ -20,11 +20,10 @@ export const UpdateSubcribeTokenAPI = (body) => {
     })
 }
 
-export const getListSubscribeUser = (body) => {
+export const getListSubscribeUser = (page_number, page_size) => {
     return api.makeAuthRequest({
-        url: `/subscribe`,
-        method: 'POST',
-        data: body
+        url: `/subscribe?page_number=${page_number}&page_size=${page_size}`,
+        method: 'GET',
     })
 }
 

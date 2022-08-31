@@ -33,6 +33,7 @@ import { SubcribeTokenAPI, UpdateSubcribeTokenAPI, unSubscribeTokenAPI } from '.
 import InputComponent from '../../component/InputComponent'
 import { CONSTANT_TYPE_ACCOUNT } from '../../constants';
 import BigNumber from 'bignumber.js'
+import { WatchListInstance } from '../WatchListScreen';
 
 
 const { width, height } = Dimensions.get('window')
@@ -46,7 +47,7 @@ class DetailTokenScreen extends React.Component {
             custom_value: { show: false, value: 0 },
             token_info: null,
             is_sub: false,
-            isloading: true,
+            isloading: false,
             isValidTxValue: true,
             txtErrorTxValue: '',
             subscribe_info: null
@@ -54,24 +55,35 @@ class DetailTokenScreen extends React.Component {
     }
     async componentDidMount() {
         const { data } = this.props;
-        let body = {
-            chain: data?.chain,
-            address: data?.address,
-            icon: data?.image
-        };
-        let tokeninfo = await GetTokenInfo(body);
-        this.setState({ isloading: false })
-        console.log("tokeninfo", tokeninfo)
-
-        if (tokeninfo && tokeninfo?.data && !tokeninfo.err) {
-
-            this.setState({ token_info: tokeninfo?.data });
-            if (tokeninfo?.sub_data) {
-                this.setState({ subscribe_info: tokeninfo?.sub_data })
+        if (data?.haveData) {
+            this.setState({ token_info: { ...data?.token_info, is_sub: true }, subscribe_info: data?.sub_data });
+            if (data?.sub_data) {
+                this.setState({ sub_value: data?.sub_data?.min_value + ''})
             }
         } else {
-            Alert.alert('This token is not supported')
+
+            let body = {
+                chain: data?.chain,
+                address: data?.address,
+                icon: data?.image,
+                website: data?.website
+            };
+            this.setState({ isloading: true })
+            let tokeninfo = await GetTokenInfo(body);
+            console.log('tokeninfo', tokeninfo)
+            this.setState({ isloading: false })
+
+            if (tokeninfo && tokeninfo?.data && !tokeninfo.err) {
+
+                this.setState({ token_info: tokeninfo?.data });
+                if (tokeninfo?.sub_data) {
+                    this.setState({ subscribe_info: tokeninfo?.sub_data, sub_value: tokeninfo?.sub_data?.min_value + '' })
+                }
+            } else {
+                Alert.alert('This token is not supported')
+            }
         }
+
 
 
     }
@@ -167,8 +179,8 @@ class DetailTokenScreen extends React.Component {
     }
     renderInfoSubscribe = () => {
         const { token_info, subscribe_info } = this.state;
-        let time_expired = (subscribe_info?.time_expired / 1000);
-        let is_expired = time_expired > Date.now();
+        let time_expired = (subscribe_info?.time_expired);
+        let is_expired = time_expired < Date.now();
         let sub_value = `${new Intl.NumberFormat("es-ES").format(subscribe_info?.min_value)} $`
 
 
@@ -222,8 +234,8 @@ class DetailTokenScreen extends React.Component {
         const { name } = data;
 
         if (token_info?.is_sub) {
-            let time_expired = (subscribe_info?.time_expired / 1000);
-            let is_expired = time_expired > Date.now();
+            let time_expired = (subscribe_info?.time_expired);
+            let is_expired = time_expired < Date.now();
             if (is_expired) {
                 this.setState({ isVisibleModal: !isVisibleModal })
             } else {
@@ -255,8 +267,8 @@ class DetailTokenScreen extends React.Component {
 
         let title_button;
         if (token_info?.is_sub) {
-            let time_expired = (subscribe_info?.time_expired / 1000);
-            let is_expired = time_expired > Date.now();
+            let time_expired = (subscribe_info?.time_expired);
+            let is_expired = time_expired < Date.now();
             if (is_expired) {
                 title_button = 'Subscribe expired';
 
@@ -292,7 +304,8 @@ class DetailTokenScreen extends React.Component {
     }
     onSubcribe = async () => {
         const { data } = this.props;
-        const { sub_value, custom_value, isVisibleModal, subscribe_info } = this.state;
+        const { sub_value, custom_value, isVisibleModal, subscribe_info, token_info } = this.state;
+
         let txValue = 0;
         // check custom
         if (custom_value.show) {
@@ -316,7 +329,9 @@ class DetailTokenScreen extends React.Component {
             }
             let req_update = await UpdateSubcribeTokenAPI(body);
             if (req_update && !req_update.err) {
-                this.setState({ subscribe_info: req_update?.data });
+                this.setState({ subscribe_info: req_update?.data, token_info: { ...token_info, is_sub: true } });
+                WatchListInstance.updateExsistData({ ...req_update?.data, token_id: token_info });
+
             }
             console.log("req_update", req_update)
         } else {
@@ -327,7 +342,8 @@ class DetailTokenScreen extends React.Component {
             };
             let req_sub = await SubcribeTokenAPI(body);
             if (req_sub && !req_sub.err) {
-                this.setState({ subscribe_info: req_sub?.data })
+                this.setState({ subscribe_info: req_sub?.data, token_info: { ...token_info, is_sub: true } });
+                WatchListInstance.addNewData({ ...req_sub?.data, token_id: token_info });
             }
         }
 
@@ -351,6 +367,7 @@ class DetailTokenScreen extends React.Component {
 
         ];
         const { isVisibleModal, showPicker, sub_value, custom_value, txtErrorTxValue, isValidTxValue } = this.state;
+        console.log("sub_value", sub_value)
         return <Modal
             onBackdropPress={() => this.setState({ isVisibleModal: false })}
             isVisible={isVisibleModal}>
