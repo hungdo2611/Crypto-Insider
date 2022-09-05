@@ -66,7 +66,7 @@ class WatchListScreen extends React.Component {
         const { lst_sub } = this.state;
         let new_arr = lst_sub.map(vl => {
             if (vl?._id == data?._id) {
-                return { ...vl, min_value: data?.min_value }
+                return { ...vl, min_value: data?.min_value, time_expired: data?.time_expired }
             } else {
                 return vl
             }
@@ -261,7 +261,7 @@ class WatchListScreen extends React.Component {
                 </View>
             </TouchableOpacity>
             <Text style={{ fontSize: 15, fontWeight: '500', color: colors.text_gray }}>{price}</Text>
-            
+
         </View>
 
     }
@@ -278,21 +278,39 @@ class WatchListScreen extends React.Component {
     }
     renderLoading = () => {
         let arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        const shadow_style = {
+            shadowColor: colors.blue,
+            shadowOffset: {
+                width: 0,
+                height: 6,
+            },
+            shadowOpacity: 0.37,
+            shadowRadius: 7.49,
+
+            elevation: 12,
+            // background color must be set
+            backgroundColor: "black" // invisible color
+        }
         return <ScrollView style={{ flex: 1 }}>
             {arr.map(vl => {
                 return <Placeholder
                     key={vl}
                     Animation={Shine}
-                    Left={props => <PlaceholderMedia style={[{ width: 40, height: 40, backgroundColor: colors.text_gray, marginLeft: (10), marginTop: (5) }, props.style]} />}
-                    style={{ marginVertical: (12) }}
+                    Left={props => <PlaceholderMedia style={[{ width: 46, height: 46, backgroundColor: colors.text_gray, marginLeft: (20), marginTop: (5) }, props.style]} />}
+                    style={[{ marginVertical: (12) }, shadow_style]}
                 >
-                    <PlaceholderLine width={70} height={10} style={{ backgroundColor: colors.text_gray, marginTop: 5 }} />
+                    <PlaceholderLine width={40} height={10} style={{ backgroundColor: colors.text_gray, marginTop: 5 }} />
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+
                         <PlaceholderLine width={20} height={10} style={{ backgroundColor: colors.text_gray }} />
-                        <PlaceholderLine width={10} height={10} style={{ backgroundColor: colors.text_gray, marginLeft: 10 }} />
+                        <PlaceholderLine width={15} height={10} style={{ backgroundColor: colors.text_gray, marginLeft: 10 }} />
+                        <View style={{ flex: 1, alignItems: "flex-end" }}>
+                            <PlaceholderLine width={25} height={10} style={{ backgroundColor: colors.text_gray, marginHorizontal: 10 }} />
+
+                        </View>
 
                     </View>
-                    {/* <PlaceholderLine width={30} height={10} style={{ backgroundColor: colors.text_gray }} /> */}
+                    <PlaceholderLine width={50} height={10} style={{ backgroundColor: colors.text_gray }} />
 
 
 

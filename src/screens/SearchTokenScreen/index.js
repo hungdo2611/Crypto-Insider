@@ -172,13 +172,27 @@ class SearchTokenScreen extends React.Component {
     }
     renderLoading = () => {
         let arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        const shadow_style = {
+            shadowColor: colors.blue,
+            shadowOffset: {
+                width: 0,
+                height: 6,
+            },
+            shadowOpacity: 0.37,
+            shadowRadius: 7.49,
+
+            elevation: 12,
+            // background color must be set
+            backgroundColor: "black" // invisible color
+        }
+
         return <ScrollView style={{ flex: 1 }}>
             {arr.map(vl => {
                 return <Placeholder
                     key={vl}
                     Animation={Shine}
                     Left={props => <PlaceholderMedia style={[{ width: 40, height: 40, backgroundColor: colors.text_gray, marginLeft: (10), marginTop: (5) }, props.style]} />}
-                    style={{ marginVertical: (12) }}
+                    style={[{ marginVertical: (12) }, shadow_style]}
                 >
                     <PlaceholderLine width={70} height={10} style={{ backgroundColor: colors.text_gray, marginTop: 5 }} />
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
