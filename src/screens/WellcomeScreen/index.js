@@ -38,7 +38,7 @@ class WellcomeScreen extends React.Component {
     }
     renderTitle = () => {
         return <View style={{ flex: 1, marginTop: 20, marginHorizontal: 40, alignItems: 'center' }}>
-            <Text style={{ color: colors.white, fontSize: 50, fontWeight: "600" }}>Crypto Insider</Text>
+            <Text style={{ color: colors.white, fontSize: 40, fontWeight: "600" }}>Crypto Insider</Text>
             <Text style={{ color: colors.text_gray, fontWeight: '500', fontSize: 20, textAlign: 'center', marginTop: 20 }}>
                 On-chain metrics turn blockchain-based transaction data into actionable crypto market insights
             </Text>
@@ -56,8 +56,9 @@ class WellcomeScreen extends React.Component {
                 <SafeAreaView>
                     <View style={{
                         width: width,
-                        height: 300,
+                        height: 130,
                         marginTop: 20,
+                        alignSelf: "center"
                     }}>
                         <LottieView
                             ref={animation => {

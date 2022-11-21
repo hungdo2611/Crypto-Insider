@@ -34,6 +34,7 @@ import InputComponent from '../../component/InputComponent'
 import { CONSTANT_TYPE_ACCOUNT } from '../../constants';
 import BigNumber from 'bignumber.js'
 import { WatchListInstance } from '../WatchListScreen';
+import messaging from '@react-native-firebase/messaging';
 
 
 const { width, height } = Dimensions.get('window')
@@ -58,7 +59,7 @@ class DetailTokenScreen extends React.Component {
         if (data?.haveData) {
             this.setState({ token_info: { ...data?.token_info, is_sub: true }, subscribe_info: data?.sub_data });
             if (data?.sub_data) {
-                this.setState({ sub_value: data?.sub_data?.min_value + ''})
+                this.setState({ sub_value: data?.sub_data?.min_value + '' })
             }
         } else {
 
@@ -226,6 +227,8 @@ class DetailTokenScreen extends React.Component {
         let req = await unSubscribeTokenAPI(subscribe_info?._id, data?.address);
         if (req && !req.err) {
             this.setState({ subscribe_info: null, token_info: { ...token_info, is_sub: false } });
+            WatchListInstance.deleteData(data?.address);
+
         }
     }
     showModalSubscribe = () => {
@@ -306,11 +309,14 @@ class DetailTokenScreen extends React.Component {
         const { data } = this.props;
         const { sub_value, custom_value, isVisibleModal, subscribe_info, token_info } = this.state;
 
+        //check expired
+        let is_custom = false;
+
         let txValue = 0;
         // check custom
         if (custom_value.show) {
             txValue = custom_value.value >> 0;
-
+            is_custom = true;
             if (txValue < 500 && InstanceData.user_info?.acc_type == CONSTANT_TYPE_ACCOUNT.PRO) {
                 this.setState({
                     isValidTxValue: false,
@@ -331,6 +337,18 @@ class DetailTokenScreen extends React.Component {
             if (req_update && !req_update.err) {
                 this.setState({ subscribe_info: req_update?.data, token_info: { ...token_info, is_sub: true } });
                 WatchListInstance.updateExsistData({ ...req_update?.data, token_id: token_info });
+                // unsub old 
+
+                if (!is_custom) {
+                    messaging()
+                        .unsubscribeFromTopic(`${data?.address}_${subscribe_info?.min_value}`)
+                        .then(() => console.log('Subscribed to topic!'));
+                    // sub new
+                    messaging()
+                        .subscribeToTopic(`${data?.address}_${txValue}`)
+                        .then(() => console.log('Subscribed to topic!'));
+                }
+
 
             }
             console.log("req_update", req_update)
@@ -338,12 +356,21 @@ class DetailTokenScreen extends React.Component {
             const body = {
                 address: data?.address,
                 min_value: txValue,
-                chain: data?.chain
+                chain: data?.chain,
+                is_custom_price: is_custom
             };
             let req_sub = await SubcribeTokenAPI(body);
+            console.log("req_sub", req_sub);
+
             if (req_sub && !req_sub.err) {
                 this.setState({ subscribe_info: req_sub?.data, token_info: { ...token_info, is_sub: true } });
                 WatchListInstance.addNewData({ ...req_sub?.data, token_id: token_info });
+                if (!is_custom) {
+                    messaging()
+                        .subscribeToTopic(`${data?.address}_${txValue}`)
+                        .then(() => console.log('Subscribed to topic!'));
+                }
+
             }
         }
 
@@ -357,17 +384,14 @@ class DetailTokenScreen extends React.Component {
 
         let isPro = InstanceData.user_info?.acc_type == CONSTANT_TYPE_ACCOUNT.PRO;
         const list = [
+            { label: new Intl.NumberFormat().format(1000) + ' $', value: '1000' },
             { label: new Intl.NumberFormat().format(2000) + ' $', value: '2000' },
             { label: new Intl.NumberFormat().format(5000) + ' $', value: '5000' },
             { label: new Intl.NumberFormat().format(10000) + ' $', value: '10000' },
             { label: new Intl.NumberFormat().format(20000) + ' $', value: '20000' },
-            { label: new Intl.NumberFormat().format(50000) + ' $', value: '50000' },
             { label: 'Custom (Pro Version)', value: 'custom', disabled: !isPro },
-
-
         ];
         const { isVisibleModal, showPicker, sub_value, custom_value, txtErrorTxValue, isValidTxValue } = this.state;
-        console.log("sub_value", sub_value)
         return <Modal
             onBackdropPress={() => this.setState({ isVisibleModal: false })}
             isVisible={isVisibleModal}>
@@ -377,7 +401,7 @@ class DetailTokenScreen extends React.Component {
                     padding: 22,
                     borderRadius: 10,
                     borderColor: 'rgba(0, 0, 0, 0.1)',
-                    height: height / 2
+                    height: 510
                 }}>
                 <ScrollView
                     showsVerticalScrollIndicator={false}>
@@ -449,15 +473,16 @@ class DetailTokenScreen extends React.Component {
                         <Text style={{ fontWeight: '600', fontSize: 14, color: colors.dark_gray, marginTop: 10 }}>
                             Subcribe will be expired in 2 days at free version
                         </Text>
-                        <TouchableOpacity
 
-                            onPress={() => this.onSubcribe()}
-                            activeOpacity={0.6}
-                            style={{ backgroundColor: colors.blue, borderRadius: 10, alignItems: 'center', justifyContent: "center", paddingVertical: 6, marginTop: 20 }}>
-                            <Text style={{ fontSize: 18, fontWeight: "600", paddingHorizontal: 10, paddingVertical: 8, color: colors.white }}>Subscribe</Text>
-                        </TouchableOpacity>
                     </View>
                 </ScrollView>
+                <TouchableOpacity
+
+                    onPress={() => this.onSubcribe()}
+                    activeOpacity={0.6}
+                    style={{ backgroundColor: colors.blue, borderRadius: 10, alignItems: 'center', justifyContent: "center", paddingVertical: 6, marginTop: 20 }}>
+                    <Text style={{ fontSize: 18, fontWeight: "600", paddingHorizontal: 10, paddingVertical: 8, color: colors.white }}>Subscribe</Text>
+                </TouchableOpacity>
             </LinearGradient>
         </Modal>
     }

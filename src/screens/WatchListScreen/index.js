@@ -19,6 +19,7 @@ import { showModalSearchToken } from '../../NavigationController'
 import { connect } from 'react-redux'
 import TopBarComponent from '../../component/TopBar';
 import colors from '../../constants/colors';
+import LottieView from 'lottie-react-native';
 
 import {
     Placeholder,
@@ -56,6 +57,13 @@ class WatchListScreen extends React.Component {
 
     componentDidMount() {
         this.getData();
+    }
+    deleteData = (address) => {
+        const { lst_sub } = this.state;
+        let new_arr = lst_sub.filter(vl => {
+            return vl?.token_id?.contract_add !== address;
+        });
+        this.setState({ lst_sub: new_arr })
     }
     addNewData = (data) => {
         console.log("addNewData", data);
@@ -109,7 +117,6 @@ class WatchListScreen extends React.Component {
                 borderRadius: 10,
                 borderWidth: 1,
                 borderColor: colors.dark_gray,
-                marginTop: 20,
                 padding: 15,
 
             }}>
@@ -124,7 +131,7 @@ class WatchListScreen extends React.Component {
     }
     renderChain = () => {
         const { chain } = this.state;
-        return <View style={{ flexDirection: "row", alignItems: "center", marginVertical: 20 }}>
+        return <View style={{ flexDirection: "row", alignItems: "center", marginVertical: 10 }}>
             {/* <Text style={{ fontWeight: "700", fontSize: 18, color: colors.text_gray }}>Chain:</Text> */}
             <View
                 style={{
@@ -132,7 +139,7 @@ class WatchListScreen extends React.Component {
                     alignItems: 'center',
                     borderRadius: 20,
                     backgroundColor: colors.dark_gray,
-                    height: 42,
+                    height: 36,
                     width: 170,
                 }}>
                 <TouchableOpacity
@@ -150,7 +157,7 @@ class WatchListScreen extends React.Component {
                     <Image style={{ width: 20, height: 20 }} source={require('../../res/bsc.png')} />
                     <Text
                         style={{
-                            fontSize: 18,
+                            fontSize: 17,
                             fontWeight: "bold",
                             color: colors.white,
                             marginLeft: 5
@@ -174,7 +181,7 @@ class WatchListScreen extends React.Component {
                     <Image style={{ width: 20, height: 20 }} source={require('../../res/eth.png')} />
                     <Text
                         style={{
-                            fontSize: 18,
+                            fontSize: 17,
                             fontWeight: "bold",
                             color: colors.white,
                             marginLeft: 5
@@ -245,9 +252,23 @@ class WatchListScreen extends React.Component {
                 onPress={() => this.onPressItem(item)}
                 activeOpacity={0.6}
                 style={[{ flexDirection: 'row', alignItems: "center", flex: 1 }]}>
-                <FastImage style={{ width: 46, height: 46, borderRadius: 23 }} resizeMode='cover' source={{ uri: item?.token_id?.icon }} />
+                <FastImage style={{ width: 36, height: 36, borderRadius: 18 }} resizeMode='cover' source={{ uri: item?.token_id?.icon }} />
                 <View style={{ marginLeft: 10 }}>
-                    <Text style={{ fontSize: 17, fontWeight: 'bold', color: colors.white, lineHeight: 20 }}>{item?.token_id?.name}</Text>
+                    <Text style={{ fontSize: 17, fontWeight: 'bold', color: colors.white, lineHeight: 20 }}>
+                        {item?.token_id?.name + ' '}
+                        {item?.time_expired > current_time ? <LottieView
+                            ref={animation => {
+                                this.animation = animation;
+                            }}
+                            style={{ height: 24, width: 24 }}
+                            resizeMode="cover"
+                            autoPlay
+                            loop={true}
+                            source={require('../../res/bell.json')}
+                        /> : <Image
+                            style={{ height: 18, width: 18 }}
+                            source={require('../../res/no_alarm.png')} />}
+                    </Text>
                     <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text_gray, marginTop: 3 }}>{item?.token_id?.symbol}</Text>
                     {/* {/* <Text style={{ fontSize: 15, fontWeight: '500', color: colors.text_gray }}>{price}</Text> */}
                     <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text_gray }}>{`Subscription value`} {sub_value}</Text>
@@ -320,6 +341,23 @@ class WatchListScreen extends React.Component {
 
         </ScrollView>
     }
+
+    renderEmpty = () => {
+        return <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+            <LottieView
+                ref={animation => {
+                    this.animation = animation;
+                }}
+                style={{ height: 150, width: 150 }}
+                resizeMode="cover"
+                autoPlay
+                loop={false}
+                source={require('../../res/empty.json')}
+            />
+            <Text style={{ fontSize: 17, fontWeight: "600", color: colors.text_gray, paddingTop: 10 }}>No subscription</Text>
+        </View>
+    }
+
     render() {
         const { isloading } = this.state;
         let data = this.getDataProvider();
@@ -333,8 +371,9 @@ class WatchListScreen extends React.Component {
                     <TopBarComponent title="Watch List" />
                     {this.renderSearchInput()}
                     {this.renderChain()}
+                    {this.renderLine()}
                     {isloading && this.renderLoading()}
-                    {!isloading && <FlatList
+                    {!isloading && data?.length > 0 && <FlatList
                         data={[...data]}
                         keyExtractor={(item, index) => item?._id}
                         renderItem={this.renderItem}
@@ -346,6 +385,7 @@ class WatchListScreen extends React.Component {
                         scrollEventThrottle={16}
                         refreshControl={this.renderRefreshCtr}
                     />}
+                    {!isloading && data?.length == 0 && this.renderEmpty()}
                 </SafeAreaView>
             </View>
         )

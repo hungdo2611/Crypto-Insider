@@ -19,6 +19,7 @@ import colors from '../../constants/colors';
 import { RegisterAccountAPI } from '../../apis/AccountAPI'
 import InputComponent from '../../component/InputComponent'
 import { setLocalData } from '../../models';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const { width, height } = Dimensions.get('window')
 class RegisterScreen extends React.Component {
@@ -146,8 +147,7 @@ class RegisterScreen extends React.Component {
                 uname, password, email
             }
             let req = await RegisterAccountAPI(body);
-            console.log("req", req)
-            if (req && req.err == 'Existed') {
+            if (req && req?.data == 'Existed') {
                 this.setState({ isValidUname: false, txtErrorUname: 'Username has already existed' });
                 return
             }
@@ -180,7 +180,7 @@ class RegisterScreen extends React.Component {
                     alignItems: "center",
                     justifyContent: "center",
                     width: '90%',
-                    height: 60, marginTop: 20
+                    height: 50, marginVertical: 20
                 }}>
                 <Text style={{ color: colors.black, fontWeight: "bold", fontSize: 18 }}>Register</Text>
             </TouchableOpacity>
@@ -199,16 +199,18 @@ class RegisterScreen extends React.Component {
                     barStyle={'light-content'}
                     hidden={false} />
                 <SafeAreaView style={{ marginHorizontal: 20, flex: 1 }}>
-                    <TouchableOpacity
-                        activeOpacity={0.6}
-                        onPress={this.onBack}
-                    >
-                        <Image
-                            style={{ tintColor: colors.white, width: 30, height: 30 }}
-                            source={require('../../res/ic_back.png')} />
-                    </TouchableOpacity>
-                    {this.renderTitle()}
-                    {this.renderInput()}
+                    <KeyboardAwareScrollView showsVerticalScrollIndicator={false}>
+                        <TouchableOpacity
+                            activeOpacity={0.6}
+                            onPress={this.onBack}
+                        >
+                            <Image
+                                style={{ tintColor: colors.white, width: 30, height: 30 }}
+                                source={require('../../res/ic_back.png')} />
+                        </TouchableOpacity>
+                        {this.renderTitle()}
+                        {this.renderInput()}
+                    </KeyboardAwareScrollView>
                     {this.renderButton()}
                 </SafeAreaView>
             </View>

@@ -8,16 +8,18 @@ import {
     StatusBar,
     TouchableOpacity,
     TextInput,
-    Alert,
+    Keyboard,
     FlatList,
     RefreshControl,
-    ScrollView
+    ScrollView,
+    TouchableWithoutFeedback
 } from 'react-native'
 
 
 
 import { connect } from 'react-redux'
 import colors from '../../constants/colors';
+import LottieView from 'lottie-react-native';
 
 import {
     Placeholder,
@@ -54,6 +56,7 @@ class SearchTokenScreen extends React.Component {
     componentDidMount() {
         const { chain } = this.state;
         this.setDataRecentSearch(chain);
+        this.ref_input.focus();
     }
 
     renderLine = () => {
@@ -94,6 +97,7 @@ class SearchTokenScreen extends React.Component {
                         borderRadius: 20,
                         padding: 12
                     }}
+                    ref={e => this.ref_input = e}
                     onChangeText={txt => this.onchangeTxt(txt)}
                     placeholder='Enter token name/ address...'
                     placeholderTextColor={colors.text_gray} />
@@ -292,26 +296,45 @@ class SearchTokenScreen extends React.Component {
             </View>
         </View>
     }
+    renderEmpty = () => {
+        return <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+            <LottieView
+                ref={animation => {
+                    this.animation = animation;
+                }}
+                style={{ height: 150, width: 150 }}
+                resizeMode="cover"
+                autoPlay
+                loop={false}
+                source={require('../../res/empty.json')}
+            />
+            <Text style={{ fontSize: 17, fontWeight: "600", color: colors.text_gray, paddingTop: 10 }}>Token not found</Text>
+        </View>
+    }
     render() {
         const { data, isloading, showRecent, recentSearch } = this.state;
+        let data_list = showRecent ? recentSearch : data;
         return (
-            <View style={{ flex: 1, backgroundColor: colors.black }}>
-                <StatusBar
-                    animated={true}
-                    barStyle={'light-content'}
-                    hidden={false} />
-                <SafeAreaView style={{ flex: 1 }}>
-                    {this.renderSearchInput()}
-                    {this.renderChain()}
-                    {this.renderLine()}
-                    {isloading && this.renderLoading()}
-                    {this.renderRecentSearch()}
-                    {!isloading && <FlatList
-                        keyExtractor={item => item?.address}
-                        data={showRecent ? recentSearch : data}
-                        renderItem={this.renderItem} />}
-                </SafeAreaView>
-            </View>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false} style={{ flex: 1 }}>
+                <View style={{ flex: 1, backgroundColor: colors.black }}>
+                    <StatusBar
+                        animated={true}
+                        barStyle={'light-content'}
+                        hidden={false} />
+                    <SafeAreaView style={{ flex: 1 }}>
+                        {this.renderSearchInput()}
+                        {this.renderChain()}
+                        {this.renderLine()}
+                        {isloading && this.renderLoading()}
+                        {this.renderRecentSearch()}
+                        {!isloading && data_list?.length == 0 && this.renderEmpty()}
+                        {!isloading && <FlatList
+                            keyExtractor={item => item?.address}
+                            data={data_list}
+                            renderItem={this.renderItem} />}
+                    </SafeAreaView>
+                </View>
+            </TouchableWithoutFeedback>
         )
     }
 }
